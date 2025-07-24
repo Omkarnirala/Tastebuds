@@ -44,29 +44,37 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initComponent() {
+        adapter = MealListAdapter(mainViewModel.meals)
+        binding.rvMeals.adapter = adapter
+
+        adapter.mealClickListener = object : MealListAdapter.OnMealClickListener {
+            override fun onMealClick(meal: meals.Meal, ingredients: List<IngredientItem>) {
+                val intent = Intent(this@MainActivity, MealInfo::class.java)
+                intent.putExtra("Title", meal.strMeal)
+                intent.putExtra("Description", meal.strInstructions)
+                intent.putExtra("Youtube_Link", meal.strYoutube)
+                intent.putExtra("Image_Src", meal.strMealThumb)
+                intent.putParcelableArrayListExtra("ingredients", ArrayList(ingredients))
+                startActivity(intent)
+            }
+
+            override fun onBottomReached(position: Int) {
+                Log.d(mTag, "onBottomReached: $position")
+                mainViewModel.getUserList()
+            }
+        }
+
         mainViewModel.getUserList()
     }
+
 
     private fun viewModelObserve() {
         mainViewModel.userList.observe(this) {
             when(it.status) {
                 Status.SUCCESS -> {
                     binding.ProgressBar.visibility = View.GONE
-                    Log.d("TAG", "viewModelObserve: ${it.data}")
-                    adapter = MealListAdapter(it.data?.meals)
-                    binding.rvMeals.adapter = adapter
-
-                    adapter.mealClickListener = object : MealListAdapter.OnMealClickListener {
-                        override fun onMealClick(meal: meals.Meal, ingredients: List<IngredientItem>) {
-                            val intent = Intent(this@MainActivity, MealInfo::class.java)
-                            intent.putExtra("Title", meal.strMeal)
-                            intent.putExtra("Description", meal.strInstructions)
-                            intent.putExtra("Youtube_Link", meal.strYoutube)
-                            intent.putExtra("Image_Src", meal.strMealThumb)
-                            intent.putParcelableArrayListExtra("ingredients", ArrayList(ingredients))
-                            startActivity(intent)
-                        }
-                    }
+                    Log.d(mTag, "viewModelObserve meals size: ${mainViewModel.meals}")
+                    adapter.notifyDataSetChanged() // Notify that new data has been added
                 }
 
                 Status.ERROR -> {

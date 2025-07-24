@@ -22,11 +22,15 @@ class MainViewModel @Inject constructor(
     val userList: LiveData<Resource<meals?>>
         get() = _menuList
 
+    val meals: ArrayList<meals.Meal?> = arrayListOf()
+
     fun getUserList() = viewModelScope.launch {
         _menuList.postValue(Resource.loading(null))
         mainRepo.getMealsList().let {
             if (it.isSuccessful) {
+                meals.addAll(it.body()?.meals ?: arrayListOf())
                 _menuList.postValue(Resource.success(it.body()))
+                Log.d("Omkar", "getUserList: ${it.body()?.meals?.size}")
             } else {
                 Log.d("Omkar", "getUserList: ${it.errorBody()?.string().toString().isEmpty()} ")
                 if (it.errorBody()?.string().toString().isEmpty()) {

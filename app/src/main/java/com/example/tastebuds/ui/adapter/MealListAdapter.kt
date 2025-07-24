@@ -1,5 +1,6 @@
 package com.example.tastebuds.ui.adapter
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.text.SpannableString
 import android.text.Spanned
@@ -21,14 +22,15 @@ import com.example.tastebuds.databinding.RvItemListBinding
 
 class MealListAdapter(
     private val meals: List<meals.Meal?>?,
-): RecyclerView.Adapter<MealListAdapter.MealViewHolder>() {
+) : RecyclerView.Adapter<MealListAdapter.MealViewHolder>() {
 
     private val expandedPositions = mutableSetOf<Int>()
-    var ingredients = listOf<IngredientItem>()
+    private var ingredients = listOf<IngredientItem>()
     var mealClickListener: OnMealClickListener? = null
 
     interface OnMealClickListener {
         fun onMealClick(meal: meals.Meal, ingredients: List<IngredientItem>)
+        fun onBottomReached(position: Int)
     }
 
     inner class MealViewHolder(val binding: RvItemListBinding) : RecyclerView.ViewHolder(binding.root)
@@ -38,10 +40,16 @@ class MealListAdapter(
         return MealViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: MealViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: MealViewHolder, @SuppressLint("RecyclerView") position: Int) {
         val meal = meals?.get(position)
 
         holder.binding.apply {
+
+            if (meal?.isWishlist == true) {
+                ivWishlist.setImageResource(R.drawable.red_heart)
+            } else {
+                ivWishlist.setImageResource(R.drawable.heart)
+            }
 
             tvTitle.text = meal?.strMeal ?: "N/A"
             val fullText = meal?.strInstructions ?: "Instructions not available"
@@ -65,6 +73,7 @@ class MealListAdapter(
                                 expandedPositions.remove(position)
                                 notifyItemChanged(position)
                             }
+
                             override fun updateDrawState(ds: TextPaint) {
                                 ds.color = Color.parseColor("#5DBCC3")
                                 ds.isUnderlineText = false
@@ -87,6 +96,7 @@ class MealListAdapter(
                                 expandedPositions.add(position)
                                 notifyItemChanged(position)
                             }
+
                             override fun updateDrawState(ds: TextPaint) {
                                 ds.color = Color.parseColor("#5DBCC3")
                                 ds.isUnderlineText = false
@@ -118,6 +128,16 @@ class MealListAdapter(
                 layoutManager = LinearLayoutManager(root.context, RecyclerView.HORIZONTAL, false)
                 adapter = IngrAdapter(ingredients)
             }
+
+            ivWishlist.setOnClickListener {
+                if (meal?.isWishlist == true) {
+                    meal.isWishlist = false
+                    ivWishlist.setImageResource(R.drawable.heart)
+                } else{
+                    meal?.isWishlist = true
+                    ivWishlist.setImageResource(R.drawable.red_heart)
+                }
+            }
         }
 
         holder.binding.rootLYT.setOnClickListener {
@@ -125,6 +145,10 @@ class MealListAdapter(
                 Log.d("mealListAdapter", "Clicked: ${it.strArea}")
                 mealClickListener?.onMealClick(it, ingredients)
             }
+        }
+
+        if (position == (meals?.size?.minus(1) ?: 0)) {
+            mealClickListener?.onBottomReached(position)
         }
     }
 

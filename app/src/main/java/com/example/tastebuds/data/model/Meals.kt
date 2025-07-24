@@ -6,7 +6,7 @@ import androidx.annotation.Keep
 @Keep
 data class meals(
     @SerializedName("meals")
-    val meals: List<Meal?>?
+    val meals: ArrayList<Meal?>?
 ) {
     @Keep
     data class Meal(
@@ -115,6 +115,7 @@ data class meals(
         @SerializedName("strTags")
         val strTags: String?, // Soup
         @SerializedName("strYoutube")
-        val strYoutube: String? // https://www.youtube.com/watch?v=KgV9Zq3aSTo
+        val strYoutube: String?, // https://www.youtube.com/watch?v=KgV9Zq3aSTo
+        var isWishlist: Boolean = false
     )
 }
